@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Visor 360</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
+    <style>
+        body { margin: 0; font-family: Arial; }
+        #panorama { width: 100%; height: 90vh; }
+        .menu {
+            height: 10vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background: #111;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background: #0a84ff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="panorama"></div>
+
+<div class="menu">
+    <button onclick="cambiar('img1')">Imagen 1</button>
+    <button onclick="cambiar('img2')">Imagen 2</button>
+</div>
+
+<script>
+    let viewer = pannellum.viewer('panorama', {
+        type: 'equirectangular',
+        panorama: '360/DJI_20260415140713_0029_D.JPG',
+        autoLoad: true
+    });
+
+    function cambiar(img) {
+        let ruta = '';
+
+        if (img === 'img1') {
+            ruta = '360/DJI_20260415140713_0029_D.JPG';
+        } else {
+            ruta = '360/DJI_20260415140858_0030_D.JPG';
+        }
+
+        viewer.loadScene({
+            type: 'equirectangular',
+            panorama: ruta
+        });
+    }
+</script>
+
+</body>
+</html>
