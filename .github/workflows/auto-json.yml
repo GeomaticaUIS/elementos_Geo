@@ -1,0 +1,30 @@
+name: Generar JSON automático
+
+on:
+  push:
+    paths:
+      - '360/*.jpg'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Ejecutar script
+        run: python generar_json.py
+
+      - name: Subir cambios
+        run: |
+          git config user.name "GeomaticaUIS"
+          git config user.email "grupogeomaticauis@gmail.com"
+          git add imagenes.json
+          git commit -m "Actualizar imagenes.json automáticamente" || echo "Sin cambios"
+          git push
