@@ -1,5 +1,8 @@
 name: Generar JSON automático
 
+permissions:
+  contents: write
+  
 on:
   push:
 
