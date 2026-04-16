@@ -36,25 +36,37 @@
 </div>
 
 <script>
-    let viewer = pannellum.viewer('panorama', {
-        type: 'equirectangular',
-        panorama: '360/DJI_20260415140713_0029_D.JPG',
-        autoLoad: true
-    });
+    const carpeta = "360/";
+    let viewer;
+    let indexActual = 0;
+    let imagenes = [];
 
-    function cambiar(img) {
-        let ruta = '';
+    fetch('imagenes.json')
+        .then(res => res.json())
+        .then(data => {
+            imagenes = data;
 
-        if (img === 'img1') {
-            ruta = '360/DJI_20260415140713_0029_D.JPG';
-        } else {
-            ruta = '360/DJI_20260415140858_0030_D.JPG';
-        }
+            viewer = pannellum.viewer('panorama', {
+                type: 'equirectangular',
+                panorama: carpeta + imagenes[0],
+                autoLoad: true,
+                autoRotate: -2
+            });
 
-        viewer.loadScene({
-            type: 'equirectangular',
-            panorama: ruta
+            iniciarTour();
         });
+
+    function iniciarTour() {
+        setInterval(() => {
+            indexActual = (indexActual + 1) % imagenes.length;
+
+            viewer.loadScene({
+                type: 'equirectangular',
+                panorama: carpeta + imagenes[indexActual],
+                autoRotate: -2
+            });
+
+        }, 8000);
     }
 </script>
 
