@@ -38,36 +38,100 @@
 <script>
     const carpeta = "360/";
     let viewer;
-    let indexActual = 0;
     let imagenes = [];
+    let indexActual = 0;
 
+    let yaw = 0;
+    let pitch = 0;
+    let animacion;
+    let reinicioTimeout;
+    let cambioImagenIntervalo;
+
+    // 📥 Cargar JSON
     fetch('imagenes.json')
         .then(res => res.json())
         .then(data => {
             imagenes = data;
 
-            viewer = pannellum.viewer('panorama', {
-                type: 'equirectangular',
-                panorama: carpeta + imagenes[0],
-                autoLoad: true,
-                autoRotate: -2
-            });
-
-            iniciarTour();
+            iniciarVisor();
+            iniciarMovimiento();
+            iniciarCambioImagen();
         });
 
-    function iniciarTour() {
-        setInterval(() => {
+    // 🎬 Inicializar visor
+    function iniciarVisor() {
+        viewer = pannellum.viewer('panorama', {
+            type: 'equirectangular',
+            panorama: carpeta + imagenes[0],
+            autoLoad: true,
+            showControls: true
+        });
+    }
+
+    // 🎥 Movimiento tipo dron
+    function iniciarMovimiento() {
+        detenerMovimiento();
+
+        animacion = setInterval(() => {
+            yaw += 0.2;
+            pitch = 10 * Math.sin(yaw * 0.05);
+
+            viewer.setYaw(yaw);
+            viewer.setPitch(pitch);
+        }, 30);
+    }
+
+    function detenerMovimiento() {
+        clearInterval(animacion);
+    }
+
+    // 🔄 Cambio automático de imágenes
+    function iniciarCambioImagen() {
+        cambioImagenIntervalo = setInterval(() => {
             indexActual = (indexActual + 1) % imagenes.length;
 
             viewer.loadScene({
                 type: 'equirectangular',
-                panorama: carpeta + imagenes[indexActual],
-                autoRotate: -2
+                panorama: carpeta + imagenes[indexActual]
             });
 
-        }, 8000);
+        }, 10000); // cada 10 segundos
     }
+
+    function detenerCambioImagen() {
+        clearInterval(cambioImagenIntervalo);
+    }
+
+    // ⏱ Reinicio después de interacción
+    function reiniciarLuego() {
+        clearTimeout(reinicioTimeout);
+
+        reinicioTimeout = setTimeout(() => {
+            iniciarMovimiento();
+            iniciarCambioImagen();
+        }, 4000);
+    }
+
+    // 🖱 Eventos usuario
+    const visor = document.getElementById("panorama");
+
+    visor.addEventListener("mousedown", () => {
+        detenerMovimiento();
+        detenerCambioImagen();
+        reiniciarLuego();
+    });
+
+    visor.addEventListener("wheel", () => {
+        detenerMovimiento();
+        detenerCambioImagen();
+        reiniciarLuego();
+    });
+
+    visor.addEventListener("touchstart", () => {
+        detenerMovimiento();
+        detenerCambioImagen();
+        reiniciarLuego();
+    });
 </script>
 
 </body>
