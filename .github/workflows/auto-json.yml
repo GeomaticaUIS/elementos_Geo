@@ -2,8 +2,6 @@ name: Generar JSON automático
 
 on:
   push:
-    paths:
-      - '360/*'
 
 jobs:
   build:
