@@ -2,118 +2,523 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Visor 360</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor 360° Profesional</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css"/>
     <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
     <style>
-    body { margin: 0; font-family: Arial; background: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
 
-    #panorama { width: 100%; height: 85vh; }
+        #panorama {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
 
-    .menu {
-        height: 15vh;
-        display: flex;
-        align-items: center;
-        overflow-x: auto;
-        gap: 10px;
-        padding: 10px;
-        background: #111;
-    }
+        /* Overlay de información */
+        .info-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    .menu::-webkit-scrollbar {
-        height: 6px;
-    }
+        .info-overlay h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #0a84ff;
+        }
 
-    .menu::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 10px;
-    }
+        .info-overlay p {
+            font-size: 13px;
+            color: #aaa;
+        }
 
-    .item {
-        min-width: 120px;
-        height: 80px;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        position: relative;
-        border: 2px solid transparent;
-        transition: 0.3s;
-    }
+        /* Controles principales */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    .item:hover {
-        border: 2px solid #0a84ff;
-        transform: scale(1.05);
-    }
+        .controls button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+        .controls button:hover {
+            background: #0a84ff;
+            transform: scale(1.1);
+        }
 
-    .item span {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0,0,0,0.6);
-        color: white;
-        font-size: 12px;
-        text-align: center;
-    }
-</style>
+        .controls button:active {
+            transform: scale(0.95);
+        }
+
+        .controls .counter {
+            background: rgba(10, 132, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0a84ff;
+            margin: 0 10px;
+        }
+
+        /* Barra de progreso */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 99;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0a84ff, #00d4ff);
+            width: 0%;
+            transition: width 0.3s linear;
+        }
+
+        /* Panel lateral de miniaturas */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+            z-index: 101;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            color: #0a84ff;
+        }
+
+        .close-sidebar {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+
+        .close-sidebar:hover {
+            transform: rotate(90deg);
+        }
+
+        .thumbnail-list {
+            padding: 15px;
+        }
+
+        .thumbnail-item {
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .thumbnail-item:hover {
+            border-color: #0a84ff;
+            transform: translateX(-5px);
+            box-shadow: 0 5px 20px rgba(10, 132, 255, 0.3);
+        }
+
+        .thumbnail-item.active {
+            border-color: #0a84ff;
+            box-shadow: 0 0 20px rgba(10, 132, 255, 0.5);
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .thumbnail-item .label {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .thumbnail-item .label .number {
+            color: #0a84ff;
+            font-weight: 700;
+            margin-right: 5px;
+        }
+
+        /* Botón toggle sidebar */
+        .toggle-sidebar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-sidebar:hover {
+            background: #0a84ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(10, 132, 255, 0.4);
+        }
+
+        /* Panel de configuración */
+        .settings-btn {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: #0a84ff;
+            transform: rotate(45deg);
+        }
+
+        .settings-panel {
+            position: absolute;
+            top: 80px;
+            right: -350px;
+            width: 320px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 15px;
+            z-index: 102;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-panel.open {
+            right: 80px;
+        }
+
+        .settings-panel h4 {
+            margin-bottom: 20px;
+            color: #0a84ff;
+            font-size: 16px;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0a84ff;
+            cursor: pointer;
+        }
+
+        .setting-item .value {
+            display: inline-block;
+            margin-left: 10px;
+            color: #0a84ff;
+            font-weight: 600;
+        }
+
+        /* Loading spinner */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #0a84ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+
+            .info-overlay {
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+
+            .controls {
+                padding: 10px 15px;
+                gap: 5px;
+            }
+
+            .controls button {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .settings-panel {
+                width: calc(100% - 40px);
+                right: -100%;
+                top: 70px;
+            }
+
+            .settings-panel.open {
+                right: 20px;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(10, 132, 255, 0.5);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #0a84ff;
+        }
+
+        /* Notificaciones toast */
+        .toast {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.4s;
+            border: 1px solid rgba(10, 132, 255, 0.5);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
 
 <div id="panorama"></div>
 
-<div class="menu" id="menu"> 
-    <button onclick="cambiar('img1')">Imagen 1</button>
-    <button onclick="cambiar('img2')">Imagen 2</button>
+<!-- Loading -->
+<div class="loading" id="loading">
+    <div class="spinner"></div>
 </div>
+
+<!-- Información de la imagen -->
+<div class="info-overlay">
+    <h2 id="imageName">Cargando...</h2>
+    <p id="imageCounter">-- / --</p>
+</div>
+
+<!-- Controles principales -->
+<div class="controls">
+    <button onclick="anterior()" title="Anterior (←)">◀</button>
+    <button id="playPauseBtn" onclick="toggleAutoPlay()" title="Play/Pausa (Espacio)">⏸</button>
+    <div class="counter">
+        <span id="currentIndex">1</span> / <span id="totalImages">0</span>
+    </div>
+    <button onclick="siguiente()" title="Siguiente (→)">▶</button>
+    <button onclick="reiniciarVista()" title="Reiniciar vista (R)">⟲</button>
+</div>
+
+<!-- Barra de progreso -->
+<div class="progress-bar">
+    <div class="progress-bar-fill" id="progressBar"></div>
+</div>
+
+<!-- Botón toggle sidebar -->
+<button class="toggle-sidebar" onclick="toggleSidebar()">
+    <span>📋</span> Galería
+</button>
+
+<!-- Botón configuración -->
+<button class="settings-btn" onclick="toggleSettings()">⚙</button>
+
+<!-- Panel de configuración -->
+<div class="settings-panel" id="settingsPanel">
+    <h4>⚙️ Configuración</h4>
+    
+    <div class="setting-item">
+        <label>Velocidad de rotación <span class="value" id="speedValue">0.2</span></label>
+        <input type="range" id="speedRange" min="0" max="1" step="0.1" value="0.2" 
+               oninput="cambiarVelocidad(this.value)">
+    </div>
+    
+    <div class="setting-item">
+        <label>Duración por imagen <span class="value" id="durationValue">20s</span></label>
+        <input type="range" id="durationRange" min="5" max="60" step="5" value="20" 
+               oninput="cambiarDuracion(this.value)">
+    </div>
+    
+    <div class="setting-item">
+        <label>Intensidad de movimiento <span class="value" id="pitchValue">10</span></label>
+        <input type="range" id="pitchRange" min="0" max="30" step="5" value="10" 
+               oninput="cambiarPitch(this.value)">
+    </div>
+</div>
+
+<!-- Sidebar de miniaturas -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3>🖼️ Galería</h3>
+        <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+    </div>
+    <div class="thumbnail-list" id="thumbnailList"></div>
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast" id="toast"></div>
 
 <script>
     const carpeta = "360/";
     let viewer;
     let imagenes = [];
     let indexActual = 0;
-
     let yaw = 0;
     let pitch = 0;
     let animacion;
     let reinicioTimeout;
     let cambioImagenIntervalo;
-    //JS para generar miniaturas automáticamente
-    const menu = document.getElementById("menu");
-
-    imagenes.forEach((img, i) => {
-        const item = document.createElement("div");
-        item.className = "item";
-
-        item.innerHTML = `
-            <img src="${carpeta + img}">
-            <span>Imagen ${i + 1}</span>
-        `;
-
-        item.onclick = () => {
-            viewer.loadScene({
-                type: 'equirectangular',
-                panorama: carpeta + img
-            });
-        };
-
-        menu.appendChild(item);
-    });
+    let autoPlayActivo = true;
+    let velocidadRotacion = 0.2;
+    let duracionImagen = 20000;
+    let intensidadPitch = 10;
+    let progresoInterval;
+    let tiempoTranscurrido = 0;
 
     // 📥 Cargar JSON
     fetch('imagenes.json')
         .then(res => res.json())
         .then(data => {
             imagenes = data;
-
+            document.getElementById('totalImages').textContent = imagenes.length;
+            
             iniciarVisor();
+            generarMiniaturas();
             iniciarMovimiento();
             iniciarCambioImagen();
+            iniciarBarraProgreso();
+            actualizarInfo();
+            
+            document.getElementById('loading').style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error cargando imagenes.json:', error);
+            mostrarToast('❌ Error al cargar las imágenes');
         });
 
     // 🎬 Inicializar visor
@@ -122,8 +527,84 @@
             type: 'equirectangular',
             panorama: carpeta + imagenes[0],
             autoLoad: true,
-            showControls: true
+            showControls: true,
+            mouseZoom: true,
+            draggable: true,
+            compass: true,
+            northOffset: 0,
+            hfov: 100,
+            minHfov: 50,
+            maxHfov: 120
         });
+
+        viewer.on('load', () => {
+            console.log('Imagen cargada:', imagenes[indexActual]);
+        });
+    }
+
+    // 🖼️ Generar miniaturas en el sidebar
+    function generarMiniaturas() {
+        const lista = document.getElementById('thumbnailList');
+        lista.innerHTML = '';
+
+        imagenes.forEach((img, i) => {
+            const item = document.createElement('div');
+            item.className = 'thumbnail-item';
+            if (i === 0) item.classList.add('active');
+            item.dataset.index = i;
+
+            item.innerHTML = `
+                <img src="${carpeta + img}" alt="Imagen ${i + 1}">
+                <div class="label">
+                    <span class="number">#${i + 1}</span>
+                    <span>${img}</span>
+                </div>
+            `;
+
+            item.onclick = () => cargarImagen(i);
+            lista.appendChild(item);
+        });
+    }
+
+    // 🔄 Cargar imagen específica
+    function cargarImagen(index) {
+        indexActual = index;
+        
+        viewer.loadScene({
+            type: 'equirectangular',
+            panorama: carpeta + imagenes[index]
+        });
+
+        actualizarInfo();
+        actualizarMiniaturaActiva();
+        reiniciarProgreso();
+        mostrarToast(`🖼️ Imagen ${index + 1} de ${imagenes.length}`);
+    }
+
+    // 📊 Actualizar información
+    function actualizarInfo() {
+        document.getElementById('imageName').textContent = imagenes[indexActual];
+        document.getElementById('imageCounter').textContent = `${indexActual + 1} de ${imagenes.length}`;
+        document.getElementById('currentIndex').textContent = indexActual + 1;
+    }
+
+    // ✨ Actualizar miniatura activa
+    function actualizarMiniaturaActiva() {
+        document.querySelectorAll('.thumbnail-item').forEach((item, i) => {
+            item.classList.toggle('active', i === indexActual);
+        });
+    }
+
+    // ⏭️ Siguiente imagen
+    function siguiente() {
+        indexActual = (indexActual + 1) % imagenes.length;
+        cargarImagen(indexActual);
+    }
+
+    // ⏮️ Anterior imagen
+    function anterior() {
+        indexActual = (indexActual - 1 + imagenes.length) % imagenes.length;
+        cargarImagen(indexActual);
     }
 
     // 🎥 Movimiento tipo dron
@@ -131,8 +612,8 @@
         detenerMovimiento();
 
         animacion = setInterval(() => {
-            yaw += 0.2;
-            pitch = 10 * Math.sin(yaw * 0.05);
+            yaw += velocidadRotacion;
+            pitch = intensidadPitch * Math.sin(yaw * 0.05);
 
             viewer.setYaw(yaw);
             viewer.setPitch(pitch);
@@ -145,19 +626,74 @@
 
     // 🔄 Cambio automático de imágenes
     function iniciarCambioImagen() {
+        if (!autoPlayActivo) return;
+        
+        detenerCambioImagen();
+        
         cambioImagenIntervalo = setInterval(() => {
-            indexActual = (indexActual + 1) % imagenes.length;
-
-            viewer.loadScene({
-                type: 'equirectangular',
-                panorama: carpeta + imagenes[indexActual]
-            });
-
-        }, 20000); // cada 20 segundos
+            siguiente();
+        }, duracionImagen);
     }
 
     function detenerCambioImagen() {
         clearInterval(cambioImagenIntervalo);
+    }
+
+    // ⏯️ Toggle autoplay
+    function toggleAutoPlay() {
+        autoPlayActivo = !autoPlayActivo;
+        const btn = document.getElementById('playPauseBtn');
+        
+        if (autoPlayActivo) {
+            btn.textContent = '⏸';
+            btn.title = 'Pausar';
+            iniciarMovimiento();
+            iniciarCambioImagen();
+            iniciarBarraProgreso();
+            mostrarToast('▶️ Reproducción automática activada');
+        } else {
+            btn.textContent = '▶';
+            btn.title = 'Reproducir';
+            detenerMovimiento();
+            detenerCambioImagen();
+            detenerBarraProgreso();
+            mostrarToast('⏸ Reproducción automática pausada');
+        }
+    }
+
+    // 📊 Barra de progreso
+    function iniciarBarraProgreso() {
+        detenerBarraProgreso();
+        tiempoTranscurrido = 0;
+        
+        progresoInterval = setInterval(() => {
+            tiempoTranscurrido += 100;
+            const porcentaje = (tiempoTranscurrido / duracionImagen) * 100;
+            document.getElementById('progressBar').style.width = porcentaje + '%';
+            
+            if (porcentaje >= 100) {
+                reiniciarProgreso();
+            }
+        }, 100);
+    }
+
+    function detenerBarraProgreso() {
+        clearInterval(progresoInterval);
+    }
+
+    function reiniciarProgreso() {
+        tiempoTranscurrido = 0;
+        document.getElementById('progressBar').style.width = '0%';
+    }
+
+    // 🔄 Reiniciar vista
+    function reiniciarVista() {
+        yaw = 0;
+        pitch = 0;
+        viewer.setYaw(0);
+        viewer.setPitch(0);
+        viewer.setHfov(100);
+        mostrarToast('🔄 Vista reiniciada');
     }
 
     // ⏱ Reinicio después de interacción
@@ -165,31 +701,108 @@
         clearTimeout(reinicioTimeout);
 
         reinicioTimeout = setTimeout(() => {
-            iniciarMovimiento();
-            iniciarCambioImagen();
+            if (autoPlayActivo) {
+                iniciarMovimiento();
+                iniciarCambioImagen();
+                iniciarBarraProgreso();
+            }
         }, 4000);
     }
 
     // 🖱 Eventos usuario
-    const visor = document.getElementById("panorama");
+    const visor = document.getElementById('panorama');
 
-    visor.addEventListener("mousedown", () => {
+    visor.addEventListener('mousedown', () => {
         detenerMovimiento();
         detenerCambioImagen();
+        detenerBarraProgreso();
         reiniciarLuego();
     });
 
-    visor.addEventListener("wheel", () => {
+    visor.addEventListener('wheel', () => {
         detenerMovimiento();
         detenerCambioImagen();
+        detenerBarraProgreso();
         reiniciarLuego();
     });
 
-    visor.addEventListener("touchstart", () => {
+    visor.addEventListener('touchstart', () => {
         detenerMovimiento();
         detenerCambioImagen();
+        detenerBarraProgreso();
         reiniciarLuego();
     });
+
+    // 📱 Toggle Sidebar
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // ⚙️ Toggle Settings
+    function toggleSettings() {
+        document.getElementById('settingsPanel').classList.toggle('open');
+    }
+
+    // ⚙️ Cambiar configuración
+    function cambiarVelocidad(valor) {
+        velocidadRotacion = parseFloat(valor);
+        document.getElementById('speedValue').textContent = valor;
+        if (autoPlayActivo) {
+            iniciarMovimiento();
+        }
+    }
+
+    function cambiarDuracion(valor) {
+        duracionImagen = parseInt(valor) * 1000;
+        document.getElementById('durationValue').textContent = valor + 's';
+        if (autoPlayActivo) {
+            iniciarCambioImagen();
+            iniciarBarraProgreso();
+        }
+    }
+
+    function cambiarPitch(valor) {
+        intensidadPitch = parseInt(valor);
+        document.getElementById('pitchValue').textContent = valor;
+    }
+
+    // 🔔 Mostrar toast
+    function mostrarToast(mensaje) {
+        const toast = document.getElementById('toast');
+        toast.textContent = mensaje;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2500);
+    }
+
+    // ⌨️ Atajos de teclado
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case 'ArrowRight':
+                siguiente();
+                break;
+            case 'ArrowLeft':
+                anterior();
+                break;
+            case ' ':
+                e.preventDefault();
+                toggleAutoPlay();
+                break;
+            case 'r':
+            case 'R':
+                reiniciarVista();
+                break;
+            case 'g':
+            case 'G':
+                toggleSidebar();
+                break;
+        }
+    });
+
+    // Inicialización al cargar
+    console.log('🎬 Visor 360° Profesional iniciado');
 </script>
 
 </body>
