@@ -541,17 +541,17 @@
         });
 
     // 🎬 Inicializar visor
-    function iniciarVisor() {
+    function iniciarVisor(index = 0) {
         if (imagenes.length === 0) {
             console.error('❌ No hay imágenes para cargar');
             return;
         }
 
-        console.log('🎬 Inicializando visor con:', carpeta + imagenes[0]);
+        console.log('🎬 Inicializando visor con:', carpeta + imagenes[index]);
         
         viewer = pannellum.viewer('panorama', {
             type: 'equirectangular',
-            panorama: carpeta + imagenes[0],
+            panorama: carpeta + imagenes[index],
             autoLoad: true,
             showControls: true,
             mouseZoom: true,
@@ -614,14 +614,26 @@
         indexActual = index;
         
         console.log(`🔄 Cargando imagen ${index + 1}:`, carpeta + imagenes[index]);
-        
-        viewer.setPanorama(carpeta + imagenes[index], null, {
-            type: 'equirectangular'
-        });
+
+        detenerMovimiento();
+        detenerCambioImagen();
+        detenerBarraProgreso();
+
+        if (viewer && typeof viewer.destroy === 'function') {
+            viewer.destroy();
+        }
+        iniciarVisor(indexActual);
 
         actualizarInfo();
         actualizarMiniaturaActiva();
         reiniciarProgreso();
+
+        if (autoPlayActivo) {
+            iniciarMovimiento();
+            iniciarCambioImagen();
+            iniciarBarraProgreso();
+        }
+
         mostrarToast(`🖼️ Imagen ${index + 1} de ${imagenes.length}`);
     }
 
