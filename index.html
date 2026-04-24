@@ -502,27 +502,53 @@
 
     // 📥 Cargar JSON
     fetch('imagenes.json')
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
+            console.log('✅ JSON cargado:', data);
             imagenes = data;
             document.getElementById('totalImages').textContent = imagenes.length;
             
+            // IMPORTANTE: Inicializar TODO después de cargar las imágenes
             iniciarVisor();
             generarMiniaturas();
+            actualizarInfo();
             iniciarMovimiento();
             iniciarCambioImagen();
             iniciarBarraProgreso();
-            actualizarInfo();
             
             document.getElementById('loading').style.display = 'none';
+            mostrarToast(`✅ ${imagenes.length} imágenes cargadas`);
         })
         .catch(error => {
-            console.error('Error cargando imagenes.json:', error);
-            mostrarToast('❌ Error al cargar las imágenes');
+            console.error('❌ Error cargando imagenes.json:', error);
+            document.getElementById('loading').innerHTML = `
+                <div style="text-align: center; color: #ff4444;">
+                    <h3>❌ Error al cargar las imágenes</h3>
+                    <p style="font-size: 14px; margin-top: 10px;">
+                        Verifica que el archivo 'imagenes.json' existe<br>
+                        y está en el mismo directorio que este HTML.
+                    </p>
+                    <p style="font-size: 12px; margin-top: 10px; color: #999;">
+                        ${error.message}
+                    </p>
+                </div>
+            `;
         });
 
     // 🎬 Inicializar visor
     function iniciarVisor() {
+        if (imagenes.length === 0) {
+            console.error('❌ No hay imágenes para cargar');
+            return;
+        }
+
+        console.log('🎬 Inicializando visor con:', carpeta + imagenes[0]);
+        
         viewer = pannellum.viewer('panorama', {
             type: 'equirectangular',
             panorama: carpeta + imagenes[0],
@@ -538,7 +564,12 @@
         });
 
         viewer.on('load', () => {
-            console.log('Imagen cargada:', imagenes[indexActual]);
+            console.log('✅ Imagen cargada:', imagenes[indexActual]);
+        });
+
+        viewer.on('error', (err) => {
+            console.error('❌ Error cargando panorama:', err);
+            mostrarToast(`❌ Error cargando: ${imagenes[indexActual]}`);
         });
     }
 
@@ -547,6 +578,11 @@
         const lista = document.getElementById('thumbnailList');
         lista.innerHTML = '';
 
+        if (imagenes.length === 0) {
+            lista.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No hay imágenes disponibles</p>';
+            return;
+        }
+
         imagenes.forEach((img, i) => {
             const item = document.createElement('div');
             item.className = 'thumbnail-item';
@@ -554,7 +590,7 @@
             item.dataset.index = i;
 
             item.innerHTML = `
-                <img src="${carpeta + img}" alt="Imagen ${i + 1}">
+                <img src="${carpeta + img}" alt="Imagen ${i + 1}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%23666%22>Error</text></svg>'">
                 <div class="label">
                     <span class="number">#${i + 1}</span>
                     <span>${img}</span>
@@ -564,11 +600,20 @@
             item.onclick = () => cargarImagen(i);
             lista.appendChild(item);
         });
+
+        console.log(`✅ ${imagenes.length} miniaturas generadas`);
     }
 
     // 🔄 Cargar imagen específica
     function cargarImagen(index) {
+        if (index < 0 || index >= imagenes.length) {
+            console.error('❌ Índice fuera de rango:', index);
+            return;
+        }
+
         indexActual = index;
+        
+        console.log(`🔄 Cargando imagen ${index + 1}:`, carpeta + imagenes[index]);
         
         viewer.loadScene({
             type: 'equirectangular',
@@ -626,7 +671,7 @@
 
     // 🔄 Cambio automático de imágenes
     function iniciarCambioImagen() {
-        if (!autoPlayActivo) return;
+        if (!autoPlayActivo || imagenes.length <= 1) return;
         
         detenerCambioImagen();
         
@@ -801,8 +846,8 @@
         }
     });
 
-    // Inicialización al cargar
-    console.log('🎬 Visor 360° Profesional iniciado.');
+    // Inicialización
+    console.log('🎬 Visor 360° Profesional v2.0');
 </script>
 
 </body>
