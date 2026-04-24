@@ -615,9 +615,8 @@
         
         console.log(`🔄 Cargando imagen ${index + 1}:`, carpeta + imagenes[index]);
         
-        viewer.loadScene({
-            type: 'equirectangular',
-            panorama: carpeta + imagenes[index]
+        viewer.setPanorama(carpeta + imagenes[index], null, {
+            type: 'equirectangular'
         });
 
         actualizarInfo();
