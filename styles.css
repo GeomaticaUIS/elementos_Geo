@@ -1,0 +1,400 @@
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #panorama {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Overlay de información */
+        .info-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-overlay h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #0a84ff;
+        }
+
+        .info-overlay p {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        /* Controles principales */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls button:hover {
+            background: #0a84ff;
+            transform: scale(1.1);
+        }
+
+        .controls button:active {
+            transform: scale(0.95);
+        }
+
+        .controls .counter {
+            background: rgba(10, 132, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0a84ff;
+            margin: 0 10px;
+        }
+
+        /* Barra de progreso */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 99;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0a84ff, #00d4ff);
+            width: 0%;
+            transition: width 0.3s linear;
+        }
+
+        /* Panel lateral de miniaturas */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+            z-index: 101;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            color: #0a84ff;
+        }
+
+        .close-sidebar {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+
+        .close-sidebar:hover {
+            transform: rotate(90deg);
+        }
+
+        .thumbnail-list {
+            padding: 15px;
+        }
+
+        .thumbnail-item {
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .thumbnail-item:hover {
+            border-color: #0a84ff;
+            transform: translateX(-5px);
+            box-shadow: 0 5px 20px rgba(10, 132, 255, 0.3);
+        }
+
+        .thumbnail-item.active {
+            border-color: #0a84ff;
+            box-shadow: 0 0 20px rgba(10, 132, 255, 0.5);
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .thumbnail-item .label {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .thumbnail-item .label .number {
+            color: #0a84ff;
+            font-weight: 700;
+            margin-right: 5px;
+        }
+
+        /* Botón toggle sidebar */
+        .toggle-sidebar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-sidebar:hover {
+            background: #0a84ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(10, 132, 255, 0.4);
+        }
+
+        /* Panel de configuración */
+        .settings-btn {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: #0a84ff;
+            transform: rotate(45deg);
+        }
+
+        .settings-panel {
+            position: absolute;
+            top: 80px;
+            right: -350px;
+            width: 320px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 15px;
+            z-index: 102;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-panel.open {
+            right: 80px;
+        }
+
+        .settings-panel h4 {
+            margin-bottom: 20px;
+            color: #0a84ff;
+            font-size: 16px;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0a84ff;
+            cursor: pointer;
+        }
+
+        .setting-item .value {
+            display: inline-block;
+            margin-left: 10px;
+            color: #0a84ff;
+            font-weight: 600;
+        }
+
+        /* Loading spinner */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #0a84ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+
+            .info-overlay {
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+
+            .controls {
+                padding: 10px 15px;
+                gap: 5px;
+            }
+
+            .controls button {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .settings-panel {
+                width: calc(100% - 40px);
+                right: -100%;
+                top: 70px;
+            }
+
+            .settings-panel.open {
+                right: 20px;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(10, 132, 255, 0.5);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #0a84ff;
+        }
+
+        /* Notificaciones toast */
+        .toast {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.4s;
+            border: 1px solid rgba(10, 132, 255, 0.5);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
